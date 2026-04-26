@@ -1221,13 +1221,13 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           </td>
                           <td className="py-5">
                             <div className="flex flex-wrap gap-1.5">
-                              {u.role === 'counsellor' && u.assignedCourses && u.assignedCourses.length > 0 ? (
+                              {(u.role === 'counsellor' || u.role === 'team_lead') && u.assignedCourses && u.assignedCourses.length > 0 ? (
                                 u.assignedCourses.map(course => (
                                   <span key={course} className={`px-2 py-0.5 ${theme === 'dark' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-100'} rounded text-[9px] font-black uppercase tracking-wider border`}>
                                     {course}
                                   </span>
                                 ))
-                              ) : u.role === 'counsellor' ? (
+                              ) : (u.role === 'counsellor' || u.role === 'team_lead') ? (
                                 <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'} italic uppercase tracking-wider`}>None assigned</span>
                               ) : (
                                 <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'}`}>-</span>
@@ -1603,15 +1603,38 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                       <tr className={`text-left border-b ${theme === 'dark' ? 'border-white/5' : 'border-slate-100'}`}>
                         <th className={`pb-4 font-black ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'} uppercase text-[10px] tracking-[0.2em]`}>Course Name</th>
                         <th className={`pb-4 font-black ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'} uppercase text-[10px] tracking-[0.2em]`}>Department</th>
+                        <th className={`pb-4 font-black ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'} uppercase text-[10px] tracking-[0.2em]`}>Assigned Staff</th>
                         <th className={`pb-4 font-black ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'} uppercase text-[10px] tracking-[0.2em]`}>Status</th>
                         <th className={`pb-4 font-black ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'} uppercase text-[10px] tracking-[0.2em]`}>Actions</th>
                       </tr>
                     </thead>
                     <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-slate-50'}`}>
-                      {courses.map(c => (
+                      {courses.map(c => {
+                        const assignedStaff = users.filter(u => 
+                          (u.role === 'counsellor' || u.role === 'team_lead') && 
+                          u.assignedCourses?.includes(c.name)
+                        );
+                        return (
                         <tr key={c.id} className={`group hover:${theme === 'dark' ? 'bg-white/5' : 'bg-slate-50/50'} transition-all duration-300`}>
                           <td className={`py-5 font-black ${theme === 'dark' ? 'text-slate-200' : 'text-slate-900'} tracking-tight`}>{c.name}</td>
                           <td className={`py-5 text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{c.description || 'N/A'}</td>
+                          <td className="py-5">
+                            <div className="flex flex-wrap gap-1.5">
+                              {assignedStaff.length > 0 ? (
+                                assignedStaff.map(s => (
+                                  <span key={s.id} className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
+                                    s.role === 'team_lead' 
+                                      ? (theme === 'dark' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-100')
+                                      : (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-100')
+                                  }`}>
+                                    {s.name} ({s.role === 'team_lead' ? 'TL' : 'C'})
+                                  </span>
+                                ))
+                              ) : (
+                                <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'} italic uppercase tracking-wider`}>Unassigned</span>
+                              )}
+                            </div>
+                          </td>
                           <td className="py-5">
                             <button 
                               onClick={() => handleToggleCourseStatus(c.id, c.isActive)}
@@ -1648,7 +1671,8 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
