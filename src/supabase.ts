@@ -45,3 +45,18 @@ export const supabase = createClient(
     }
   }
 );
+
+/**
+ * Check if Supabase connection is healthy by making a lightweight query
+ */
+export async function checkSupabaseHealth(): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('courses').select('id', { count: 'exact', head: true });
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Unknown network error' };
+  }
+}
