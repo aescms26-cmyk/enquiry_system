@@ -1,0 +1,297 @@
+.app-header {
+  position: sticky;
+  top: 0;
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 100;
+}
+
+.app-header__main {
+  height: 4rem;
+  margin: 0 1rem;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (min-width: 640px) {
+  .app-header__main {
+    height: 5rem;
+    margin: 0 1.5rem;
+    padding: 0 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-header__main {
+    margin: 0 2rem;
+  }
+}
+
+/* Logo */
+.app-header__logo {
+  display: flex;
+  align-items: center;
+}
+
+.app-header__logo-wrap {
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-header__logo-wrap--mobile {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .app-header__logo-wrap--desktop {
+    display: none;
+  }
+
+  .app-header__logo-wrap--mobile {
+    display: flex;
+  }
+}
+
+.app-header__logo-img {
+  height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Right section */
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .app-header__right {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-header__right {
+    gap: 2rem;
+  }
+}
+
+/* Navigation */
+.app-header__nav {
+  display: none;
+  gap: 2rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+@media (min-width: 768px) {
+  .app-header__nav {
+    display: flex;
+  }
+}
+
+.app-header__nav-link,
+.app-header__nav a {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  transition: color 0.2s;
+  text-decoration: none;
+}
+
+.app-header__nav-link:hover {
+  color: var(--text-primary);
+}
+
+.app-header__nav-link--active {
+  color: var(--accent-red);
+}
+
+/* Actions */
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--border-color);
+}
+
+.app-header__icon-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--bg-input);
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.app-header__icon-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.app-header__icon-btn--spinning svg {
+  animation: spin 1s linear infinite;
+  color: var(--accent-red);
+}
+
+/* User */
+.app-header__user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-header__user-info {
+  text-align: right;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .app-header__user-info {
+    display: block;
+  }
+}
+
+.app-header__user-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.app-header__user-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-header__user-id {
+  font-size: 0.5rem;
+  font-family: monospace;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.app-header__user-role {
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-red);
+}
+
+.app-header__user-id-wrap {
+  position: relative;
+}
+
+.app-header__copy-toast {
+  position: absolute;
+  top: -1.25rem;
+  right: 0;
+  background: #fff;
+  color: #000;
+  font-size: 0.5rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* Mobile Menu Toggle */
+.app-header__menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--bg-input);
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+@media (min-width: 768px) {
+  .app-header__menu-toggle {
+    display: none;
+  }
+}
+
+/* Mobile Nav Drawer */
+.app-header__mobile-nav {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: color-mix(in srgb, var(--bg-primary) 95%, transparent);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 99;
+}
+
+.app-header__mobile-nav-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.app-header__mobile-nav-link:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.app-header__mobile-nav-link--active {
+  color: var(--accent-red);
+  background: var(--bg-card);
+}
+
+/* Login */
+.app-header__login-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  cursor: pointer;
+}
+
+@media (max-width: 639px) {
+  .app-header__login-btn span {
+    display: none;
+  }
+}

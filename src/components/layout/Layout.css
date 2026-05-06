@@ -1,0 +1,72 @@
+/* ============================================
+   Layout Component Styles
+   ============================================ */
+
+.layout-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans);
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  position: relative;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 100;
+  background-color: var(--accent-red);
+  color: white;
+  padding: 0.875rem;
+  border-radius: 9999px;
+  box-shadow: 0 25px 50px -12px rgba(211, 47, 47, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s;
+}
+
+@media (min-width: 640px) {
+  .fab {
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1rem;
+  }
+}
+
+.fab:hover {
+  transform: scale(1.1);
+}
+
+.fab:active {
+  transform: scale(0.9);
+}
+
+@media (min-width: 768px) {
+  .fab {
+    display: none;
+  }
+}
+
+/* Main Content */
+.layout-main {
+  flex-grow: 1;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .layout-main {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-main {
+    padding: 0 2rem;
+  }
+}
+

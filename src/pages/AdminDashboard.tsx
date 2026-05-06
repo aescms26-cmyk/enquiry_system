@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import Layout from '../components/Layout';
+import Layout from '../components/layout/Layout';
 import { User, Course, Enquiry, TransportRoute, TransportStop } from '../types';
 import { downloadCSV } from '../utils/csvExport';
 import { Users, BookOpen, BarChart3, Plus, Trash2, Edit2, UserPlus, Shield, UserCheck, Search, Filter, ChevronRight, AlertCircle, CheckCircle2, Copy, Database, LayoutDashboard, Bus, Home, ExternalLink, CreditCard, Coffee, MapPin, Phone, Clock, FileText, RefreshCw, Download, Mail, Lock } from 'lucide-react';
@@ -27,7 +27,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // Enquiry Processing State
   const [processingEnquiry, setProcessingEnquiry] = useState<Enquiry | null>(null);
   const [processingNotes, setProcessingNotes] = useState('');
@@ -94,10 +94,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     // Subscribe to users table for real-time break status
     const usersChannel = supabase
       .channel('admin_users_realtime')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'users' 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'users'
       }, () => {
         fetchData();
       })
@@ -106,10 +106,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     // Subscribe to enquiries table
     const enquiriesChannel = supabase
       .channel('admin_enquiries_realtime')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'enquiries' 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'enquiries'
       }, () => {
         fetchData();
       })
@@ -130,7 +130,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         .from('users')
         .select('*')
         .order('name');
-      
+
       if (usersError) {
         console.error('Error fetching users:', usersError);
         throw new Error(`Users: ${usersError.message}`);
@@ -155,7 +155,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         .from('courses')
         .select('*')
         .order('name');
-      
+
       if (coursesError) {
         console.error('Error fetching courses:', coursesError);
         throw new Error(`Courses: ${coursesError.message}`);
@@ -172,7 +172,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         .from('enquiries')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (enquiriesError) {
         console.error('Error fetching enquiries:', enquiriesError);
         throw new Error(`Enquiries: ${enquiriesError.message}`);
@@ -207,7 +207,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         .from('transport_stops')
         .select('*')
         .order('stop_name');
-      
+
       const mappedStops = stopsError ? [] : stopsData.map(s => ({
         id: s.id,
         stopName: s.stop_name,
@@ -223,7 +223,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         .from('transport_routes')
         .select('*')
         .order('route_name');
-      
+
       if (routesError) {
         console.error('Error fetching transport routes:', routesError);
       } else {
@@ -265,7 +265,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
     try {
       const endpoint = editingUser ? '/api/users/update' : '/api/users/create';
-      const body = editingUser 
+      const body = editingUser
         ? { ...userFormData, uid: editingUser.id, adminId: user.id }
         : { ...userFormData, adminId: user.id };
 
@@ -316,7 +316,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     try {
       const response = await fetch('/api/admin/clear-data', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-admin-id': user.id
         },
@@ -344,7 +344,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     try {
       const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-admin-id': user.id
         },
@@ -372,22 +372,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       if (editingCourse) {
         const { error: courseError } = await supabase
           .from('courses')
-          .update({ 
+          .update({
             name: courseName.trim(),
             description: courseDescription.trim()
           })
           .eq('id', editingCourse.id);
-        
+
         if (courseError) throw courseError;
         setSuccess('Course updated successfully!');
       } else {
         const { error: courseError } = await supabase
           .from('courses')
-          .insert([{ 
+          .insert([{
             name: courseName.trim(),
             description: courseDescription.trim()
           }]);
-        
+
         if (courseError) throw courseError;
         setSuccess('Course added successfully!');
       }
@@ -411,7 +411,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         .from('courses')
         .update({ is_active: !currentStatus })
         .eq('id', id);
-      
+
       if (courseError) throw courseError;
       fetchData();
     } catch (err: any) {
@@ -492,7 +492,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             .delete()
             .eq('route_id', routeId);
         }
-        
+
         if (routeFormData.stops.length > 0) {
           const stopsToInsert = routeFormData.stops.map(stop => ({
             stop_name: stop.stopName,
@@ -504,7 +504,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           const { error: stopsError } = await supabase
             .from('transport_stops')
             .insert(stopsToInsert);
-          
+
           if (stopsError) throw stopsError;
         }
 
@@ -519,15 +519,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
       setShowRouteForm(false);
       setEditingRoute(null);
-      setRouteFormData({ 
-        routeName: '', 
-        busNumber: '', 
+      setRouteFormData({
+        routeName: '',
+        busNumber: '',
         busRegNo: '',
-        driverName: '', 
-        driverPhone: '', 
+        driverName: '',
+        driverPhone: '',
         helperName: '',
-        morningTime: '', 
-        eveningTime: '', 
+        morningTime: '',
+        eveningTime: '',
         isActive: true,
         stops: []
       });
@@ -611,23 +611,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const handleProcessEnquiry = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!processingEnquiry) return;
-    
+
     setLoading(true);
     try {
       const { error: enquiryError } = await supabase
         .from('enquiries')
-        .update({ 
-          status: processingStatus, 
+        .update({
+          status: processingStatus,
           notes: processingNotes,
           last_updated: new Date().toISOString()
         })
         .eq('id', processingEnquiry.id);
-      
+
       if (enquiryError) throw enquiryError;
-      
+
       // Optimistic update
       setEnquiries(prev => prev.map(e => e.id === processingEnquiry.id ? { ...e, status: processingStatus, notes: processingNotes } : e));
-      
+
       setSuccess('Enquiry updated successfully!');
       setShowProcessForm(false);
       setProcessingEnquiry(null);
@@ -646,7 +646,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         .from('courses')
         .delete()
         .eq('id', id);
-      
+
       if (courseError) throw courseError;
       fetchData();
     } catch (err: any) {
@@ -681,7 +681,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       console.error('Real-time check failed:', err);
       const errorMessage = err.message || 'Unknown error';
       const errorCode = err.code || 'No code';
-      
+
       if (errorCode === 'PGRST202' || errorMessage.includes('function') && errorMessage.includes('does not exist')) {
         setError(`RPC 'check_realtime_status' is missing. Please run the SQL command below in your Supabase SQL Editor.`);
       } else {
@@ -715,44 +715,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         <div className="w-full md:w-64 flex-shrink-0 space-y-2">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${
-              activeTab === 'dashboard' 
-                ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200' 
-                : theme === 'dark' 
-                  ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white' 
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'dashboard'
+                ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200'
+                : theme === 'dark'
+                  ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
                   : 'bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 border border-slate-200 shadow-sm'
-            }`}
+              }`}
           >
             <LayoutDashboard className={`h-5 w-5 ${activeTab === 'dashboard' ? 'text-white' : 'text-[#D32F2F]'}`} />
             <span>Overview</span>
           </button>
-          
+
           {(user.role === 'admin' || user.role === 'front_office') && (
             <>
               {user.role === 'admin' && (
                 <>
                   <button
                     onClick={() => setActiveTab('users')}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${
-                      activeTab === 'users' 
-                        ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200' 
-                        : theme === 'dark' 
-                          ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white' 
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'users'
+                        ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200'
+                        : theme === 'dark'
+                          ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
                           : 'bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 border border-slate-200 shadow-sm'
-                    }`}
+                      }`}
                   >
                     <Users className={`h-5 w-5 ${activeTab === 'users' ? 'text-white' : 'text-[#D32F2F]'}`} />
                     <span>User Management</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('courses')}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${
-                      activeTab === 'courses' 
-                        ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200' 
-                        : theme === 'dark' 
-                          ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white' 
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'courses'
+                        ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200'
+                        : theme === 'dark'
+                          ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
                           : 'bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 border border-slate-200 shadow-sm'
-                    }`}
+                      }`}
                   >
                     <BookOpen className={`h-5 w-5 ${activeTab === 'courses' ? 'text-white' : 'text-[#D32F2F]'}`} />
                     <span>Course Catalog</span>
@@ -761,13 +758,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
               )}
               <button
                 onClick={() => setActiveTab('transport')}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${
-                  activeTab === 'transport' 
-                    ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200' 
-                    : theme === 'dark' 
-                      ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white' 
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'transport'
+                    ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200'
+                    : theme === 'dark'
+                      ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
                       : 'bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 border border-slate-200 shadow-sm'
-                }`}
+                  }`}
               >
                 <Bus className={`h-5 w-5 ${activeTab === 'transport' ? 'text-white' : 'text-[#D32F2F]'}`} />
                 <span>Transport Management</span>
@@ -777,13 +773,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
           <button
             onClick={() => setActiveTab('enquiries')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${
-              activeTab === 'enquiries' 
-                ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200' 
-                : theme === 'dark' 
-                  ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white' 
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'enquiries'
+                ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200'
+                : theme === 'dark'
+                  ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
                   : 'bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 border border-slate-200 shadow-sm'
-            }`}
+              }`}
           >
             <Search className={`h-5 w-5 ${activeTab === 'enquiries' ? 'text-white' : 'text-[#D32F2F]'}`} />
             <span>All Enquiries</span>
@@ -792,13 +787,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           {user.role === 'admin' && (
             <button
               onClick={() => setActiveTab('reports')}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${
-                activeTab === 'reports' 
-                  ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200' 
-                  : theme === 'dark' 
-                    ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white' 
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${activeTab === 'reports'
+                  ? 'bg-[#D32F2F] text-white shadow-lg shadow-red-200'
+                  : theme === 'dark'
+                    ? 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
                     : 'bg-white text-slate-600 hover:bg-red-50 hover:text-red-600 border border-slate-200 shadow-sm'
-              }`}
+                }`}
             >
               <BarChart3 className={`h-5 w-5 ${activeTab === 'reports' ? 'text-white' : 'text-[#D32F2F]'}`} />
               <span>System Reports</span>
@@ -841,7 +835,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
                 {/* Quick Portals */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <motion.div 
+                  <motion.div
                     whileHover={{ scale: 1.02 }}
                     className={`rounded-2xl p-8 text-white shadow-xl relative overflow-hidden group cursor-pointer bg-gradient-to-br from-blue-600 to-blue-700 ${theme === 'dark' ? 'shadow-blue-900/20' : 'shadow-blue-100'}`}
                   >
@@ -852,7 +846,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                       </div>
                       <h3 className="text-2xl font-bold mb-2">Transport Portal</h3>
                       <p className="text-blue-100 mb-6 max-w-[240px]">Manage university bus routes, schedules, and student transport registrations.</p>
-                      <button 
+                      <button
                         onClick={() => setActiveTab('transport')}
                         className="bg-white text-blue-600 px-6 py-2 rounded-xl font-bold inline-flex items-center space-x-2 hover:bg-blue-50 transition-colors"
                       >
@@ -862,7 +856,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                     </div>
                   </motion.div>
 
-                  <motion.div 
+                  <motion.div
                     whileHover={{ scale: 1.02 }}
                     className={`rounded-2xl p-8 text-white shadow-xl relative overflow-hidden group cursor-pointer bg-gradient-to-br from-emerald-600 to-emerald-700 ${theme === 'dark' ? 'shadow-emerald-900/20' : 'shadow-emerald-100'}`}
                   >
@@ -873,9 +867,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                       </div>
                       <h3 className="text-2xl font-bold mb-2">Hostel Portal</h3>
                       <p className="text-emerald-100 mb-6 max-w-[240px]">Oversee room allocations, mess management, and hostel facility requests.</p>
-                      <a 
-                        href="https://krmangalam.edu.in/hostel" 
-                        target="_blank" 
+                      <a
+                        href="https://krmangalam.edu.in/hostel"
+                        target="_blank"
                         className="bg-white text-emerald-600 px-6 py-2 rounded-xl font-bold inline-flex items-center space-x-2 hover:bg-emerald-50 transition-colors"
                       >
                         <span>Access Portal</span>
@@ -884,7 +878,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                     </div>
                   </motion.div>
 
-                  <motion.div 
+                  <motion.div
                     whileHover={{ scale: 1.02 }}
                     className={`rounded-2xl p-8 text-white shadow-xl relative overflow-hidden group cursor-pointer bg-gradient-to-br from-purple-600 to-purple-700 ${theme === 'dark' ? 'shadow-purple-900/20' : 'shadow-purple-100'}`}
                   >
@@ -895,9 +889,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                       </div>
                       <h3 className="text-2xl font-bold mb-2">Payment Portal</h3>
                       <p className="text-purple-100 mb-6 max-w-[240px]">Process tuition fees, exam charges, and other university financial transactions.</p>
-                      <a 
-                        href="https://payment.collexo.com/user/login/?dest=/kr-mangalam-university-sohna-haryana-43490/applicant/" 
-                        target="_blank" 
+                      <a
+                        href="https://payment.collexo.com/user/login/?dest=/kr-mangalam-university-sohna-haryana-43490/applicant/"
+                        target="_blank"
                         className="bg-white text-purple-600 px-6 py-2 rounded-xl font-bold inline-flex items-center space-x-2 hover:bg-purple-50 transition-colors"
                       >
                         <span>Access Portal</span>
@@ -943,59 +937,59 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                   </div>
                   {user.role === 'admin' && (
                     <div className={`${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 shadow-sm'} p-6 rounded-2xl border`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <p className={`${theme === 'dark' ? 'text-slate-500' : 'text-orange-700'} text-[10px] font-black uppercase tracking-widest`}>System Health</p>
-                      <button 
-                        onClick={checkRealtime}
-                        disabled={checkingRealtime}
-                        className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20' : 'bg-white hover:bg-orange-50 shadow-sm'}`}
-                        title="Check Real-time Sync"
-                      >
-                        <RefreshCw className={`h-3 w-3 ${checkingRealtime ? 'animate-spin' : ''} ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`} />
-                      </button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Database className={`h-5 w-5 ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`} />
-                      <h4 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-orange-900'}`}>Real-time Sync</h4>
-                    </div>
-                    
-                    {realtimeStatus.length > 0 ? (
-                      <div className="mt-4 space-y-2">
-                        {realtimeStatus.map(status => (
-                          <div key={status.table_name} className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-tight text-slate-500">{status.table_name}</span>
-                            {status.enabled ? (
-                              <span className="flex items-center text-[9px] font-black text-green-600 uppercase tracking-widest">
-                                <CheckCircle2 className="h-2.5 w-2.5 mr-1" />
-                                Enabled
-                              </span>
-                            ) : (
-                              <span className="flex items-center text-[9px] font-black text-red-600 uppercase tracking-widest">
-                                <AlertCircle className="h-2.5 w-2.5 mr-1" />
-                                Disabled
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                        {!realtimeStatus.every(s => s.enabled) && (
-                          <div className="mt-3 p-2 bg-red-500/10 rounded-lg border border-red-500/20">
-                            <p className="text-[9px] font-bold text-red-500 leading-tight">
-                              Some tables are NOT in the realtime publication. Run this SQL:
-                              <br />
-                              <code className="block mt-1 p-1 bg-black/20 rounded text-[8px] font-mono">
-                                ALTER PUBLICATION supabase_realtime ADD TABLE {realtimeStatus.filter(s => !s.enabled).map(s => s.table_name).join(', ')};
-                              </code>
-                            </p>
-                          </div>
-                        )}
+                      <div className="flex justify-between items-start mb-2">
+                        <p className={`${theme === 'dark' ? 'text-slate-500' : 'text-orange-700'} text-[10px] font-black uppercase tracking-widest`}>System Health</p>
+                        <button
+                          onClick={checkRealtime}
+                          disabled={checkingRealtime}
+                          className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20' : 'bg-white hover:bg-orange-50 shadow-sm'}`}
+                          title="Check Real-time Sync"
+                        >
+                          <RefreshCw className={`h-3 w-3 ${checkingRealtime ? 'animate-spin' : ''} ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`} />
+                        </button>
                       </div>
-                    ) : showRpcSql ? (
-                      <div className="mt-3 p-3 bg-red-500/10 rounded-xl border border-red-500/20">
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="text-[10px] font-bold text-red-600">RPC Missing. Run this SQL in Supabase Editor:</p>
-                          <button
-                            onClick={() => {
-                              const sql = `-- Ensure the publication exists
+                      <div className="flex items-center space-x-2">
+                        <Database className={`h-5 w-5 ${theme === 'dark' ? 'text-orange-400' : 'text-orange-600'}`} />
+                        <h4 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-orange-900'}`}>Real-time Sync</h4>
+                      </div>
+
+                      {realtimeStatus.length > 0 ? (
+                        <div className="mt-4 space-y-2">
+                          {realtimeStatus.map(status => (
+                            <div key={status.table_name} className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold uppercase tracking-tight text-slate-500">{status.table_name}</span>
+                              {status.enabled ? (
+                                <span className="flex items-center text-[9px] font-black text-green-600 uppercase tracking-widest">
+                                  <CheckCircle2 className="h-2.5 w-2.5 mr-1" />
+                                  Enabled
+                                </span>
+                              ) : (
+                                <span className="flex items-center text-[9px] font-black text-red-600 uppercase tracking-widest">
+                                  <AlertCircle className="h-2.5 w-2.5 mr-1" />
+                                  Disabled
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                          {!realtimeStatus.every(s => s.enabled) && (
+                            <div className="mt-3 p-2 bg-red-500/10 rounded-lg border border-red-500/20">
+                              <p className="text-[9px] font-bold text-red-500 leading-tight">
+                                Some tables are NOT in the realtime publication. Run this SQL:
+                                <br />
+                                <code className="block mt-1 p-1 bg-black/20 rounded text-[8px] font-mono">
+                                  ALTER PUBLICATION supabase_realtime ADD TABLE {realtimeStatus.filter(s => !s.enabled).map(s => s.table_name).join(', ')};
+                                </code>
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ) : showRpcSql ? (
+                        <div className="mt-3 p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                          <div className="flex justify-between items-center mb-2">
+                            <p className="text-[10px] font-bold text-red-600">RPC Missing. Run this SQL in Supabase Editor:</p>
+                            <button
+                              onClick={() => {
+                                const sql = `-- Ensure the publication exists
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
@@ -1023,16 +1017,16 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated, service_role;`;
-                              navigator.clipboard.writeText(sql);
-                              alert('SQL copied to clipboard!');
-                            }}
-                            className="text-[9px] font-black text-red-600 uppercase tracking-widest hover:underline"
-                          >
-                            Copy SQL
-                          </button>
-                        </div>
-                        <pre className="p-2 bg-black/20 rounded text-[8px] font-mono overflow-x-auto whitespace-pre-wrap text-red-400">
-{`-- Ensure the publication exists
+                                navigator.clipboard.writeText(sql);
+                                alert('SQL copied to clipboard!');
+                              }}
+                              className="text-[9px] font-black text-red-600 uppercase tracking-widest hover:underline"
+                            >
+                              Copy SQL
+                            </button>
+                          </div>
+                          <pre className="p-2 bg-black/20 rounded text-[8px] font-mono overflow-x-auto whitespace-pre-wrap text-red-400">
+                            {`-- Ensure the publication exists
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
@@ -1060,16 +1054,16 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated, service_role;`}
-                        </pre>
-                      </div>
-                    ) : (
-                      <div className="mt-3 flex items-center text-[10px] text-orange-600 font-black uppercase tracking-wider">
-                        <span className="h-1.5 w-1.5 bg-orange-500 rounded-full mr-2"></span>
-                        <span>Click refresh to check status</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                          </pre>
+                        </div>
+                      ) : (
+                        <div className="mt-3 flex items-center text-[10px] text-orange-600 font-black uppercase tracking-wider">
+                          <span className="h-1.5 w-1.5 bg-orange-500 rounded-full mr-2"></span>
+                          <span>Click refresh to check status</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Recent Activity Chart */}
@@ -1081,10 +1075,10 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#F1F5F9'} />
                         <XAxis dataKey="createdAt" hide />
                         <YAxis hide />
-                        <Tooltip 
-                          contentStyle={{ 
-                            borderRadius: '16px', 
-                            border: 'none', 
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: '16px',
+                            border: 'none',
                             boxShadow: theme === 'dark' ? '0 20px 25px -5px rgb(0 0 0 / 0.3)' : '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                             backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
                             color: theme === 'dark' ? '#f1f5f9' : '#1e293b',
@@ -1092,11 +1086,11 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           }}
                           itemStyle={{ color: theme === 'dark' ? '#f1f5f9' : '#1e293b', fontWeight: 'bold' }}
                         />
-                        <Line 
-                          type="monotone" 
-                          dataKey="status" 
-                          stroke="#D32F2F" 
-                          strokeWidth={3} 
+                        <Line
+                          type="monotone"
+                          dataKey="status"
+                          stroke="#D32F2F"
+                          strokeWidth={3}
                           dot={{ r: 4, fill: '#D32F2F', strokeWidth: 2, stroke: theme === 'dark' ? '#0A1133' : '#ffffff' }}
                           activeDot={{ r: 6, strokeWidth: 0 }}
                         />
@@ -1173,7 +1167,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                   {(() => {
                                     let statusColor = 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]';
                                     let statusLabel = 'Active';
-                                    
+
                                     if (u.onBreak) {
                                       statusColor = 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]';
                                       statusLabel = 'On Break';
@@ -1191,7 +1185,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                     }
 
                                     return (
-                                      <div 
+                                      <div
                                         className={`h-2 w-2 rounded-full ${statusColor}`}
                                         title={statusLabel}
                                       ></div>
@@ -1206,12 +1200,11 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                             </div>
                           </td>
                           <td className="py-5">
-                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                              u.role === 'admin' ? (theme === 'dark' ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600') :
-                              u.role === 'team_lead' ? (theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600') :
-                              u.role === 'front_office' ? (theme === 'dark' ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600') :
-                              (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
-                            }`}>
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${u.role === 'admin' ? (theme === 'dark' ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600') :
+                                u.role === 'team_lead' ? (theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600') :
+                                  u.role === 'front_office' ? (theme === 'dark' ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-600') :
+                                    (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
+                              }`}>
                               {u.role.replace('_', ' ')}
                             </span>
                           </td>
@@ -1259,17 +1252,17 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                 </div>
 
                 {/* User Form Modal */}
-{showUserForm && (
+                {showUserForm && (
                   <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-                    <motion.div 
-                      initial={{ scale: 0.85, opacity: 0, y: 20 }} 
-                      animate={{ scale: 1, opacity: 1, y: 0 }} 
+                    <motion.div
+                      initial={{ scale: 0.85, opacity: 0, y: 20 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
                       exit={{ scale: 0.85, opacity: 0, y: 20 }}
                       className={`relative w-full max-w-sm my-8 max-h-[90vh] flex flex-col ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 backdrop-blur-xl shadow-2xl shadow-purple-900/30 border border-slate-700/50' : 'bg-gradient-to-br from-white via-slate-50 to-blue-50 backdrop-blur-xl shadow-2xl shadow-blue-200/50 border border-blue-100/50'} rounded-2xl p-5 sm:p-6 overflow-hidden`}
                     >
                       {/* Decorative gradient corners */}
                       <div className={`absolute top-0 right-0 w-40 h-40 ${theme === 'dark' ? 'bg-gradient-to-br from-purple-600/10 to-transparent' : 'bg-gradient-to-br from-blue-400/10 to-transparent'} rounded-full -mr-20 -mt-20 blur-2xl`} />
-                      
+
                       <div className="relative z-10 overflow-y-auto flex-1 pr-2">
                         <div className="flex items-center space-x-2 mb-3">
                           <div className={`p-2 rounded-lg flex-shrink-0 ${theme === 'dark' ? 'bg-gradient-to-br from-purple-600 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-cyan-500'}`}>
@@ -1290,15 +1283,15 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           <div className="space-y-1.5">
                             <label className={`block text-[9px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} ml-0.5`}>Photo</label>
                             <div className={`relative group ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 hover:border-indigo-500/30' : 'bg-blue-50 border-blue-200 hover:border-blue-300/50'} border-2 border-dashed rounded-lg p-3 text-center hover:shadow-md transition-all cursor-pointer w-full h-28 flex items-center justify-center`}>
-                              <input 
-                                type="file" 
+                              <input
+                                type="file"
                                 accept="image/*"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0];
                                   if (file) {
                                     const reader = new FileReader();
                                     reader.onloadend = () => {
-                                      setUserFormData({...userFormData, photoURL: reader.result as string});
+                                      setUserFormData({ ...userFormData, photoURL: reader.result as string });
                                     };
                                     reader.readAsDataURL(file);
                                   }
@@ -1308,9 +1301,9 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                               {userFormData.photoURL ? (
                                 <div className="relative">
                                   <img src={userFormData.photoURL} alt="Preview" className="w-14 h-14 rounded-lg object-cover shadow-lg" />
-                                  <button 
+                                  <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setUserFormData({...userFormData, photoURL: ''}); }}
+                                    onClick={(e) => { e.stopPropagation(); setUserFormData({ ...userFormData, photoURL: '' }); }}
                                     className="absolute -top-2 -right-2 bg-red-500 text-white p-0.5 rounded-full shadow-md hover:bg-red-600 transition-all"
                                   >
                                     <Trash2 className="h-3 w-3" />
@@ -1412,8 +1405,8 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                             <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-500">Role</label>
                             <div className="relative">
                               <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                              <select 
-                                value={userFormData.role} 
+                              <select
+                                value={userFormData.role}
                                 onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value as User['role'] })}
                                 className={`w-full pl-10 pr-4 py-3 rounded-lg text-sm font-semibold appearance-none bg-no-repeat bg-right bg-[url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIGZpbGw9IiM5Q0QyRkYiIHN0cm9rZT0iIzlDRDJGRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==")] ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900 shadow-inner'} border-2 focus:ring-2 focus:ring-[#1976D2]/20 focus:border-[#1976D2] outline-none transition-all hover:border-slate-300`}
                               >
@@ -1432,8 +1425,8 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                   <label className="text-[11px] font-black uppercase tracking-widest ml-1 text-slate-500">Assign Team Lead</label>
                                   <div className="relative">
                                     <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                                    <select 
-                                      value={userFormData.teamLeadId} 
+                                    <select
+                                      value={userFormData.teamLeadId}
                                       onChange={(e) => setUserFormData({ ...userFormData, teamLeadId: e.target.value })}
                                       className={`w-full pl-12 pr-6 py-5 rounded-2xl font-bold appearance-none bg-no-repeat bg-right bg-[url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIGZpbGw9IiM5Q0QyRkYiIHN0cm9rZT0iIzlDRDJGRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==")] ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900 shadow-inner'} border-2 focus:ring-4 focus:ring-[#1976D2]/20 focus:border-[#1976D2] outline-none transition-all hover:border-slate-300`}
                                     >
@@ -1461,8 +1454,8 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                 <div className={`max-h-40 overflow-y-auto p-3 rounded-lg border-2 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} custom-scrollbar`}>
                                   <div className="grid grid-cols-1 gap-2">
                                     {courses.filter(c => c.isActive && (c.name.toLowerCase().includes(courseSearchFilter.toLowerCase()) || c.description?.toLowerCase().includes(courseSearchFilter.toLowerCase()))).map(c => (
-                                      <motion.label 
-                                        key={c.id} 
+                                      <motion.label
+                                        key={c.id}
                                         whileHover={{ scale: 1.01 }}
                                         className={`flex items-center space-x-2.5 p-2.5 rounded-lg cursor-pointer transition-all group ${theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-blue-50'} border border-transparent hover:border-blue-200/50`}
                                       >
@@ -1471,10 +1464,10 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                           className="h-4 w-4 rounded accent-[#1976D2] border-2 border-slate-300 text-[#1976D2] focus:ring-[#1976D2] focus:ring-2 transition-all shadow-sm"
                                           checked={userFormData.assignedCourses.includes(c.name)}
                                           onChange={(e) => {
-                                            const newCourses = e.target.checked 
+                                            const newCourses = e.target.checked
                                               ? [...userFormData.assignedCourses, c.name]
                                               : userFormData.assignedCourses.filter(cn => cn !== c.name);
-                                            setUserFormData({...userFormData, assignedCourses: newCourses});
+                                            setUserFormData({ ...userFormData, assignedCourses: newCourses });
                                           }}
                                         />
                                         <div>
@@ -1501,8 +1494,8 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           )}
 
                           {error && (
-                            <motion.div 
-                              initial={{ opacity: 0, height: 0 }} 
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               className={`${theme === 'dark' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-50 text-red-600 border-red-100'} p-4 rounded-2xl border flex items-center space-x-3`}
                             >
@@ -1512,15 +1505,15 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           )}
                         </form>
                       </div>
-                      
+
                       {/* Fixed button area at bottom */}
                       <div className={`relative z-10 border-t ${theme === 'dark' ? 'border-slate-700/50' : 'border-blue-100/50'} mt-3 sm:mt-4 pt-3 sm:pt-4 flex flex-col sm:flex-row gap-2.5 sm:gap-3 flex-shrink-0`}>
                         <motion.button
                           type="button"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => { 
-                            setShowUserForm(false); 
+                          onClick={() => {
+                            setShowUserForm(false);
                             setEditingUser(null);
                             setCourseSearchFilter('');
                             setUserFormData({ name: '', email: '', password: '', role: 'counsellor', teamLeadId: '', assignedCourses: [], mobileNo: '', photoURL: '', userId: '' });
@@ -1564,14 +1557,14 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                         This will permanently delete all enquiries, courses, and non-admin users. This action cannot be undone.
                       </p>
                       <div className="flex space-x-3">
-                        <button 
-                          onClick={() => setShowClearConfirm(false)} 
+                        <button
+                          onClick={() => setShowClearConfirm(false)}
                           className={`flex-grow py-3 rounded-xl border ${theme === 'dark' ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-gray-200 text-gray-500 hover:bg-gray-50'} font-bold transition-colors`}
                         >
                           Cancel
                         </button>
-                        <button 
-                          onClick={handleClearData} 
+                        <button
+                          onClick={handleClearData}
                           disabled={loading}
                           className="flex-grow py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
                         >
@@ -1610,67 +1603,65 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                     </thead>
                     <tbody className={`divide-y ${theme === 'dark' ? 'divide-white/5' : 'divide-slate-50'}`}>
                       {courses.map(c => {
-                        const assignedStaff = users.filter(u => 
-                          (u.role === 'counsellor' || u.role === 'team_lead') && 
+                        const assignedStaff = users.filter(u =>
+                          (u.role === 'counsellor' || u.role === 'team_lead') &&
                           u.assignedCourses?.includes(c.name)
                         );
                         return (
-                        <tr key={c.id} className={`group hover:${theme === 'dark' ? 'bg-white/5' : 'bg-slate-50/50'} transition-all duration-300`}>
-                          <td className={`py-5 font-black ${theme === 'dark' ? 'text-slate-200' : 'text-slate-900'} tracking-tight`}>{c.name}</td>
-                          <td className={`py-5 text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{c.description || 'N/A'}</td>
-                          <td className="py-5">
-                            <div className="flex flex-wrap gap-1.5">
-                              {assignedStaff.length > 0 ? (
-                                assignedStaff.map(s => (
-                                  <span key={s.id} className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
-                                    s.role === 'team_lead' 
-                                      ? (theme === 'dark' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-100')
-                                      : (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-100')
-                                  }`}>
-                                    {s.name} ({s.role === 'team_lead' ? 'TL' : 'C'})
-                                  </span>
-                                ))
-                              ) : (
-                                <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'} italic uppercase tracking-wider`}>Unassigned</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-5">
-                            <button 
-                              onClick={() => handleToggleCourseStatus(c.id, c.isActive)}
-                              className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${
-                                c.isActive 
-                                  ? (theme === 'dark' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-green-50 text-green-600 hover:bg-green-100') 
-                                  : (theme === 'dark' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100')
-                              }`}
-                            >
-                              {c.isActive ? 'Active' : 'Inactive'}
-                            </button>
-                          </td>
-                          <td className="py-5">
-                            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                              <button 
-                                onClick={() => {
-                                  setEditingCourse(c);
-                                  setCourseName(c.name);
-                                  setCourseDescription(c.description || '');
-                                  setShowCourseForm(true);
-                                }} 
-                                className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'} transition-all`}
-                                title="Edit Course"
+                          <tr key={c.id} className={`group hover:${theme === 'dark' ? 'bg-white/5' : 'bg-slate-50/50'} transition-all duration-300`}>
+                            <td className={`py-5 font-black ${theme === 'dark' ? 'text-slate-200' : 'text-slate-900'} tracking-tight`}>{c.name}</td>
+                            <td className={`py-5 text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{c.description || 'N/A'}</td>
+                            <td className="py-5">
+                              <div className="flex flex-wrap gap-1.5">
+                                {assignedStaff.length > 0 ? (
+                                  assignedStaff.map(s => (
+                                    <span key={s.id} className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${s.role === 'team_lead'
+                                        ? (theme === 'dark' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-100')
+                                        : (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-100')
+                                      }`}>
+                                      {s.name} ({s.role === 'team_lead' ? 'TL' : 'C'})
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-slate-600' : 'text-slate-400'} italic uppercase tracking-wider`}>Unassigned</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-5">
+                              <button
+                                onClick={() => handleToggleCourseStatus(c.id, c.isActive)}
+                                className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${c.isActive
+                                    ? (theme === 'dark' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-green-50 text-green-600 hover:bg-green-100')
+                                    : (theme === 'dark' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100')
+                                  }`}
                               >
-                                <Edit2 className="h-4 w-4" />
+                                {c.isActive ? 'Active' : 'Inactive'}
                               </button>
-                              <button 
-                                onClick={() => handleDeleteCourse(c.id)} 
-                                className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'} transition-all`}
-                                title="Delete Course"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
+                            </td>
+                            <td className="py-5">
+                              <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <button
+                                  onClick={() => {
+                                    setEditingCourse(c);
+                                    setCourseName(c.name);
+                                    setCourseDescription(c.description || '');
+                                    setShowCourseForm(true);
+                                  }}
+                                  className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'} transition-all`}
+                                  title="Edit Course"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCourse(c.id)}
+                                  className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100'} transition-all`}
+                                  title="Delete Course"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
                         );
                       })}
                     </tbody>
@@ -1691,14 +1682,14 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           <input type="text" value={courseDescription} onChange={e => setCourseDescription(e.target.value)} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/50' : 'bg-white border-gray-200 text-gray-900 focus:ring-blue-500'} outline-none focus:ring-2 transition-all`} placeholder="e.g. School of Engineering" />
                         </div>
                         <div className="flex space-x-3 pt-4">
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => {
                               setShowCourseForm(false);
                               setEditingCourse(null);
                               setCourseName('');
                               setCourseDescription('');
-                            }} 
+                            }}
                             className={`flex-grow py-2 rounded-lg border ${theme === 'dark' ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-gray-200 text-gray-500 hover:bg-gray-50'} font-bold transition-colors`}
                           >
                             Cancel
@@ -1720,11 +1711,10 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                   <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>All System Enquiries</h2>
                   <button
                     onClick={() => downloadCSV(enquiries, 'all_enquiries')}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold transition-all ${
-                      theme === 'dark' 
-                        ? 'bg-white/5 text-white border border-white/10 hover:bg-white/10' 
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold transition-all ${theme === 'dark'
+                        ? 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
                         : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm'
-                    }`}
+                      }`}
                   >
                     <Download className="h-4 w-4" />
                     <span>Download CSV</span>
@@ -1749,13 +1739,12 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           <td className={`py-5 font-black ${theme === 'dark' ? 'text-slate-200' : 'text-slate-900'} tracking-tight`}>{e.studentName}</td>
                           <td className={`py-5 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} font-bold text-xs uppercase tracking-wider`}>{e.course}</td>
                           <td className="py-5">
-                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                              e.status === 'Completed' 
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${e.status === 'Completed'
                                 ? (theme === 'dark' ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-600') :
-                              e.status === 'In Progress' 
-                                ? (theme === 'dark' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-yellow-50 text-yellow-600') :
-                                (theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600')
-                            }`}>
+                                e.status === 'In Progress'
+                                  ? (theme === 'dark' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-yellow-50 text-yellow-600') :
+                                  (theme === 'dark' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600')
+                              }`}>
                               {e.status}
                             </span>
                           </td>
@@ -1763,7 +1752,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                             {users.find(u => u.id === e.counsellorId)?.name || 'Unassigned'}
                           </td>
                           <td className="py-5">
-                            <button 
+                            <button
                               onClick={() => {
                                 setProcessingEnquiry(e);
                                 setProcessingNotes(e.notes || '');
@@ -1792,7 +1781,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           <Plus className="h-6 w-6 rotate-45" />
                         </button>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                         <div className={`${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'} p-3 rounded-lg`}>
                           <p className={`text-[10px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-400'} uppercase mb-1`}>Student</p>
@@ -1848,9 +1837,9 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                       <form onSubmit={handleProcessEnquiry} className="space-y-4">
                         <div>
                           <label className={`block text-xs font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-1`}>Update Status</label>
-                          <select 
-                            value={processingStatus} 
-                            onChange={e => setProcessingStatus(e.target.value as Enquiry['status'])} 
+                          <select
+                            value={processingStatus}
+                            onChange={e => setProcessingStatus(e.target.value as Enquiry['status'])}
                             className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/50' : 'bg-white border-gray-200 text-gray-900 focus:ring-blue-500'} outline-none focus:ring-2 transition-all font-bold`}
                           >
                             <option value="Pending">Pending</option>
@@ -1860,25 +1849,25 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                         </div>
                         <div>
                           <label className={`block text-xs font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-1`}>Processing Notes</label>
-                          <textarea 
-                            rows={4} 
-                            value={processingNotes} 
-                            onChange={e => setProcessingNotes(e.target.value)} 
-                            className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/50' : 'bg-white border-gray-200 text-gray-900 focus:ring-blue-500'} outline-none focus:ring-2 transition-all`} 
+                          <textarea
+                            rows={4}
+                            value={processingNotes}
+                            onChange={e => setProcessingNotes(e.target.value)}
+                            className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white focus:ring-blue-500/50' : 'bg-white border-gray-200 text-gray-900 focus:ring-blue-500'} outline-none focus:ring-2 transition-all`}
                             placeholder="Enter processing notes, follow-up details, etc."
                           />
                         </div>
                         <div className="flex space-x-3 pt-4">
-                          <button 
-                            type="button" 
-                            onClick={() => setShowProcessForm(false)} 
+                          <button
+                            type="button"
+                            onClick={() => setShowProcessForm(false)}
                             className={`flex-grow py-3 rounded-xl border ${theme === 'dark' ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-gray-200 text-gray-500 hover:bg-gray-50'} font-bold transition-colors`}
                           >
                             Cancel
                           </button>
-                          <button 
-                            type="submit" 
-                            disabled={loading} 
+                          <button
+                            type="submit"
+                            disabled={loading}
                             className="flex-grow py-3 rounded-xl bg-[#1976D2] text-white font-bold hover:bg-[#1565C0] transition-all disabled:opacity-50"
                           >
                             {loading ? 'Updating...' : 'Update Enquiry'}
@@ -1896,20 +1885,20 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                 <div className="flex justify-between items-center">
                   <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Transport Management</h2>
                   <div className="flex space-x-4">
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingRoute(null);
-                        setRouteFormData({ 
-                          routeName: '', 
-                          busNumber: '', 
+                        setRouteFormData({
+                          routeName: '',
+                          busNumber: '',
                           busRegNo: '',
-                          driverName: '', 
-                          driverPhone: '', 
+                          driverName: '',
+                          driverPhone: '',
                           helperName: '',
-                          morningTime: '', 
-                          eveningTime: '', 
-                          isActive: true, 
-                          stops: [] 
+                          morningTime: '',
+                          eveningTime: '',
+                          isActive: true,
+                          stops: []
                         });
                         setShowRouteForm(true);
                       }}
@@ -1918,7 +1907,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                       <Plus className="h-5 w-5" />
                       <span>Add Route</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingStop(null);
                         setStopFormData({ stopName: '', routeId: '', pickupTime: '', dropTime: '' });
@@ -1958,7 +1947,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                   </div>
                                 </div>
                               </div>
-                              
+
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-50'} border ${theme === 'dark' ? 'border-white/5' : 'border-slate-100'}`}>
                                   <div className="flex items-center space-x-3 mb-2">
@@ -2006,14 +1995,14 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                               )}
                             </div>
                             <div className="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-all ml-4">
-                              <button 
+                              <button
                                 onClick={() => setSelectedRosterRoute(route)}
                                 className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-white/10 text-yellow-400 hover:bg-yellow-500/20' : 'bg-white text-yellow-600 border border-yellow-100 hover:bg-yellow-50'} shadow-sm transition-all`}
                                 title="View Roster"
                               >
                                 <FileText className="h-5 w-5" />
                               </button>
-                              <button 
+                              <button
                                 onClick={() => {
                                   setEditingRoute(route);
                                   const existingStops = transportStops
@@ -2042,7 +2031,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                               >
                                 <Edit2 className="h-5 w-5" />
                               </button>
-                              <button 
+                              <button
                                 onClick={() => setDeleteConfirm({ type: 'route', id: route.id })}
                                 className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-white/10 text-red-400 hover:bg-red-500/20' : 'bg-white text-red-600 border border-red-100 hover:bg-red-50'} shadow-sm transition-all`}
                                 title="Delete Route"
@@ -2090,7 +2079,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                 </div>
                               </div>
                               <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-all ml-4">
-                                <button 
+                                <button
                                   onClick={() => {
                                     setEditingStop(stop);
                                     setStopFormData({
@@ -2105,7 +2094,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                 >
                                   <Edit2 className="h-4 w-4" />
                                 </button>
-                                <button 
+                                <button
                                   onClick={() => setDeleteConfirm({ type: 'stop', id: stop.id })}
                                   className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white/10 text-red-400' : 'bg-white text-red-600 border border-red-100'}`}
                                 >
@@ -2122,7 +2111,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
 
                 {/* Roster Modal */}
                 {selectedRosterRoute && (
-                  <BusRoster 
+                  <BusRoster
                     route={selectedRosterRoute}
                     stops={transportStops.filter(s => s.routeId === selectedRosterRoute.id)}
                     onClose={() => setSelectedRosterRoute(null)}
@@ -2134,53 +2123,53 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm overflow-y-auto">
                     <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`relative w-full max-w-sm my-8 max-h-[90vh] flex flex-col ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-2xl shadow-purple-900/30 border-slate-700/50' : 'bg-gradient-to-br from-white via-slate-50 to-blue-50 shadow-2xl shadow-blue-200/50 border-blue-100/50'} rounded-2xl p-4 sm:p-5 border overflow-hidden`}>
                       <div className={`absolute top-0 right-0 w-40 h-40 ${theme === 'dark' ? 'bg-gradient-to-br from-purple-600/10 to-transparent' : 'bg-gradient-to-br from-blue-400/10 to-transparent'} rounded-full -mr-20 -mt-20 blur-2xl`} />
-                      
+
                       <h3 className={`relative z-10 text-base sm:text-lg font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{editingRoute ? 'Edit Route' : 'Add New Route'}</h3>
-                      
+
                       <div className="relative z-10 overflow-y-auto flex-1 pr-2">
                         <form id="routeForm" onSubmit={handleAddTransportRoute} className="space-y-3">
                           <div className="grid grid-cols-2 gap-2.5">
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Route</label>
-                              <input required type="text" value={routeFormData.routeName} onChange={e => setRouteFormData({...routeFormData, routeName: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="W-1" />
+                              <input required type="text" value={routeFormData.routeName} onChange={e => setRouteFormData({ ...routeFormData, routeName: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="W-1" />
                             </div>
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Bus #</label>
-                              <input required type="text" value={routeFormData.busNumber} onChange={e => setRouteFormData({...routeFormData, busNumber: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="Route 1" />
+                              <input required type="text" value={routeFormData.busNumber} onChange={e => setRouteFormData({ ...routeFormData, busNumber: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="Route 1" />
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-2.5">
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Reg. No</label>
-                              <input required type="text" value={routeFormData.busRegNo} onChange={e => setRouteFormData({...routeFormData, busRegNo: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="HR55AN8591" />
+                              <input required type="text" value={routeFormData.busRegNo} onChange={e => setRouteFormData({ ...routeFormData, busRegNo: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="HR55AN8591" />
                             </div>
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Helper</label>
-                              <input required type="text" value={routeFormData.helperName} onChange={e => setRouteFormData({...routeFormData, helperName: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="Name" />
+                              <input required type="text" value={routeFormData.helperName} onChange={e => setRouteFormData({ ...routeFormData, helperName: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="Name" />
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-2.5">
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Driver</label>
-                              <input required type="text" value={routeFormData.driverName} onChange={e => setRouteFormData({...routeFormData, driverName: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="Name" />
+                              <input required type="text" value={routeFormData.driverName} onChange={e => setRouteFormData({ ...routeFormData, driverName: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="Name" />
                             </div>
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Phone</label>
-                              <input required type="text" value={routeFormData.driverPhone} onChange={e => setRouteFormData({...routeFormData, driverPhone: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="9876543210" />
+                              <input required type="text" value={routeFormData.driverPhone} onChange={e => setRouteFormData({ ...routeFormData, driverPhone: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="9876543210" />
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-2.5">
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Morning</label>
-                              <input required type="text" value={routeFormData.morningTime} onChange={e => setRouteFormData({...routeFormData, morningTime: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="7:00 AM" />
+                              <input required type="text" value={routeFormData.morningTime} onChange={e => setRouteFormData({ ...routeFormData, morningTime: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="7:00 AM" />
                             </div>
                             <div>
                               <label className={`block text-[9px] font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-0.5`}>Evening</label>
-                              <input required type="text" value={routeFormData.eveningTime} onChange={e => setRouteFormData({...routeFormData, eveningTime: e.target.value})} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="4:30 PM" />
+                              <input required type="text" value={routeFormData.eveningTime} onChange={e => setRouteFormData({ ...routeFormData, eveningTime: e.target.value })} className={`w-full px-3 py-1.5 rounded-lg text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50 transition-all`} placeholder="4:30 PM" />
                             </div>
                           </div>
                           <div className="flex items-center space-x-2 pt-1">
-                            <input type="checkbox" id="routeActive" checked={routeFormData.isActive} onChange={e => setRouteFormData({...routeFormData, isActive: e.target.checked})} className="rounded" />
+                            <input type="checkbox" id="routeActive" checked={routeFormData.isActive} onChange={e => setRouteFormData({ ...routeFormData, isActive: e.target.checked })} className="rounded" />
                             <label htmlFor="routeActive" className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}`}>Active</label>
                           </div>
 
@@ -2192,34 +2181,34 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                 {routeFormData.stops.length}
                               </span>
                             </div>
-                            
+
                             <div className="space-y-2 mb-2">
-                              <input 
-                                type="text" 
-                                placeholder="Stop name" 
+                              <input
+                                type="text"
+                                placeholder="Stop name"
                                 value={newStop.stopName}
-                                onChange={e => setNewStop({...newStop, stopName: e.target.value})}
+                                onChange={e => setNewStop({ ...newStop, stopName: e.target.value })}
                                 className={`w-full px-2.5 py-1.5 rounded text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50`}
                               />
                               <div className="grid grid-cols-2 gap-2">
-                                <input 
-                                  type="text" 
-                                  placeholder="7:15 AM" 
+                                <input
+                                  type="text"
+                                  placeholder="7:15 AM"
                                   value={newStop.pickupTime}
-                                  onChange={e => setNewStop({...newStop, pickupTime: e.target.value})}
+                                  onChange={e => setNewStop({ ...newStop, pickupTime: e.target.value })}
                                   className={`w-full px-2.5 py-1.5 rounded text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50`}
                                 />
-                                <input 
-                                  type="text" 
-                                  placeholder="5:00 PM" 
+                                <input
+                                  type="text"
+                                  placeholder="5:00 PM"
                                   value={newStop.dropTime}
-                                  onChange={e => setNewStop({...newStop, dropTime: e.target.value})}
+                                  onChange={e => setNewStop({ ...newStop, dropTime: e.target.value })}
                                   className={`w-full px-2.5 py-1.5 rounded text-xs border ${theme === 'dark' ? 'bg-slate-700/30 border-slate-600/50 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-1.5 focus:ring-blue-500/50`}
                                 />
                               </div>
                             </div>
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               onClick={addStopToRoute}
                               className={`w-full py-1.5 rounded text-xs font-bold text-white ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} transition-all flex items-center justify-center space-x-1`}
                             >
@@ -2244,8 +2233,8 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                                         </div>
                                       </div>
                                     </div>
-                                    <button 
-                                      type="button" 
+                                    <button
+                                      type="button"
                                       onClick={() => removeStopFromRoute(idx)}
                                       className="p-1 text-red-500 hover:bg-red-500/10 rounded opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 ml-1"
                                     >
@@ -2277,11 +2266,11 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                       <form onSubmit={handleAddTransportStop} className="space-y-4">
                         <div>
                           <label className={`block text-xs font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-1`}>Stop Name</label>
-                          <input required type="text" value={stopFormData.stopName} onChange={e => setStopFormData({...stopFormData, stopName: e.target.value})} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all`} placeholder="e.g. Huda City Centre" />
+                          <input required type="text" value={stopFormData.stopName} onChange={e => setStopFormData({ ...stopFormData, stopName: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all`} placeholder="e.g. Huda City Centre" />
                         </div>
                         <div>
                           <label className={`block text-xs font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-1`}>Select Route</label>
-                          <select required value={stopFormData.routeId} onChange={e => setStopFormData({...stopFormData, routeId: e.target.value})} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all font-bold`}>
+                          <select required value={stopFormData.routeId} onChange={e => setStopFormData({ ...stopFormData, routeId: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all font-bold`}>
                             <option value="">Select a route</option>
                             {transportRoutes.map(r => (
                               <option key={r.id} value={r.id}>{r.routeName}</option>
@@ -2291,11 +2280,11 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className={`block text-xs font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-1`}>Pickup Time</label>
-                            <input required type="text" value={stopFormData.pickupTime} onChange={e => setStopFormData({...stopFormData, pickupTime: e.target.value})} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all`} placeholder="e.g. 7:15 AM" />
+                            <input required type="text" value={stopFormData.pickupTime} onChange={e => setStopFormData({ ...stopFormData, pickupTime: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all`} placeholder="e.g. 7:15 AM" />
                           </div>
                           <div>
                             <label className={`block text-xs font-bold ${theme === 'dark' ? 'text-slate-500' : 'text-gray-500'} uppercase mb-1`}>Drop Time</label>
-                            <input required type="text" value={stopFormData.dropTime} onChange={e => setStopFormData({...stopFormData, dropTime: e.target.value})} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all`} placeholder="e.g. 5:00 PM" />
+                            <input required type="text" value={stopFormData.dropTime} onChange={e => setStopFormData({ ...stopFormData, dropTime: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 transition-all`} placeholder="e.g. 5:00 PM" />
                           </div>
                         </div>
                         <div className="flex space-x-3 pt-4">
@@ -2322,8 +2311,8 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                       </p>
                       <div className="flex space-x-3">
                         <button onClick={() => setDeleteConfirm(null)} className={`flex-grow py-3 rounded-xl border ${theme === 'dark' ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-gray-200 text-gray-500 hover:bg-gray-50'} font-bold transition-colors`}>Cancel</button>
-                        <button 
-                          onClick={() => deleteConfirm.type === 'route' ? handleDeleteRoute(deleteConfirm.id) : handleDeleteStop(deleteConfirm.id)} 
+                        <button
+                          onClick={() => deleteConfirm.type === 'route' ? handleDeleteRoute(deleteConfirm.id) : handleDeleteStop(deleteConfirm.id)}
                           className="flex-grow py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
                         >
                           Delete
@@ -2338,7 +2327,7 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
             {activeTab === 'reports' && user.role === 'admin' && (
               <div className="space-y-12">
                 <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-8`}>System Analytics</h2>
-                
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Status Distribution */}
                   <div className={`${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'} p-6 rounded-2xl border`}>
@@ -2351,10 +2340,10 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
-                          <Tooltip 
-                            contentStyle={{ 
-                              borderRadius: '12px', 
-                              border: 'none', 
+                          <Tooltip
+                            contentStyle={{
+                              borderRadius: '12px',
+                              border: 'none',
                               boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                               backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
                               color: theme === 'dark' ? '#f1f5f9' : '#1e293b'
@@ -2382,11 +2371,11 @@ GRANT EXECUTE ON FUNCTION public.check_realtime_status() TO anon, authenticated,
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#eee'} />
                           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: theme === 'dark' ? '#64748b' : '#94a3b8' }} />
                           <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: theme === 'dark' ? '#64748b' : '#94a3b8' }} />
-                          <Tooltip 
-                            cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f0f0f0' }} 
-                            contentStyle={{ 
-                              borderRadius: '12px', 
-                              border: 'none', 
+                          <Tooltip
+                            cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f0f0f0' }}
+                            contentStyle={{
+                              borderRadius: '12px',
+                              border: 'none',
                               boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                               backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
                               color: theme === 'dark' ? '#f1f5f9' : '#1e293b'

@@ -1,0 +1,27 @@
+/* ActiveEnquiryWorkspace Styles */
+.workspace-empty {
+  border-style: dashed;
+}
+.workspace-card {
+  border-width: 1px;
+}
+.timer-header {
+  border-bottom-width: 1px;
+}
+.detail-card {
+  border-width: 1px;
+}
+.status-select {
+  border-width: 1px;
+}
+.notes-textarea {
+  border-width: 1px;
+}
+.notes-textarea:focus {
+  border-color: rgb(59 130 246); /* blue-500 */
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+.dark .detail-card {
+  border-color: rgb(255 255 255 / 0.1);
+}
+

@@ -1,0 +1,20 @@
+/* EnquiryTable Styles */
+.csv-btn {
+  border: 1px solid;
+}
+.table {
+  border-collapse: collapse;
+}
+.table-header {
+  color: rgb(107 114 128); /* gray-500 */
+}
+.dark .table-header {
+  color: rgb(148 163 184); /* slate-400 */
+}
+.table-row {
+  transition-property: background-color;
+}
+.status-badge {
+  font-weight: 900;
+}
+

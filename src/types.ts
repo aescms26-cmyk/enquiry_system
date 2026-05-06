@@ -10,9 +10,9 @@ export interface User {
   assignedCourses?: string[];
   mobileNo?: string;
   photoURL?: string;
-  onBreak?: boolean;
+  on_break?: boolean;
   breakStartTime?: string;
-  breakDurationMins?: number;
+  break_duration_mins?: number;
   lastSeen?: string;
   createdAt: string;
 }

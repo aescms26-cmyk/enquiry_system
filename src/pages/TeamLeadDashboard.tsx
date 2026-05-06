@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import Layout from '../components/Layout';
+import Layout from '../components/layout/Layout';
 import { User, Enquiry, TimeLog } from '../types';
 import { Users, Search, BarChart3, Clock, CheckCircle2, AlertCircle, ChevronRight, Play, Square, MessageSquare, User as UserIcon, Calendar, MapPin, Phone, Mail, BookOpen, Bus, Home, CreditCard, ExternalLink, Coffee, Download } from 'lucide-react';
 import { downloadCSV } from '../utils/csvExport';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../contexts/ThemeContext';
+import { StatsOverview } from '../components/team-lead-dashboard/StatsOverview';
+import { CounsellorCard } from '../components/team-lead-dashboard/CounsellorCard';
+import { QuickPortals } from '../components/team-lead-dashboard/QuickPortals';
 import '../styles/pages/TeamLeadDashboard.css';
 
 interface TeamLeadDashboardProps {
@@ -18,6 +21,7 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
   const [teamEnquiries, setTeamEnquiries] = useState<Enquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'counsellors' | 'enquiries' | 'my-enquiries'>('overview');
+const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Counsellor functionality for TL
   const [myEnquiries, setMyEnquiries] = useState<Enquiry[]>([]);
@@ -37,19 +41,13 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
           .eq('team_lead_id', user.id);
         
         if (counsellorsError) throw counsellorsError;
-        setCounsellors(counsellorsData.map(u => ({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role,
+setCounsellors(counsellorsData.map((u: any) => ({
+          ...u,
+          userId: u.id, 
           teamLeadId: u.team_lead_id,
           assignedCourses: u.assigned_courses,
-          mobileNo: u.mobile_no,
-          photoURL: u.photo_url,
           onBreak: u.on_break,
-          breakStartTime: u.break_start_time,
-          breakDurationMins: u.break_duration_mins,
-          createdAt: u.created_at
+          breakDurationMins: u.break_duration_mins
         } as User)));
 
         // Fetch all enquiries assigned to this team lead's team
@@ -304,7 +302,7 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
       if (error) throw error;
       
       setCounsellors(prev => prev.map(c => 
-        c.id === counsellorId ? { ...c, breakDurationMins: duration } : c
+        c.id === counsellorId ? { ...c, breakDurationMins: duration, break_duration_mins: duration } : c
       ));
     } catch (err) {
       console.error('Error updating break duration:', err);
@@ -317,15 +315,21 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
       total: enquiries.length,
       completed: enquiries.filter(e => e.status === 'Completed').length,
       pending: enquiries.filter(e => e.status === 'Pending').length,
-      inProgress: enquiries.filter(e => e.status === 'In Progress').length,
     };
   };
 
+  const toggleMobileSidebar = () => setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
+
   return (
     <Layout userRole={user.role} userName={user.name} userId={user.userId}>
-      <div className="flex flex-col md:flex-row gap-8">
+<div className="dashboard-container flex lg:flex-row gap-8 relative">
+        {/* Mobile overlay */}
+        {isMobileSidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50 lg:hidden" onClick={() => setIsMobileSidebarOpen(false)} aria-hidden="true" />
+        )}
         {/* Sidebar */}
-        <div className="w-full md:w-64 flex-shrink-0 space-y-2">
+        <div className={`sidebar w-full lg:w-64 flex-shrink-0 space-y-2 lg:static fixed z-50 transform lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
           <button
             onClick={() => setActiveTab('overview')}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold ${
@@ -383,204 +387,41 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
         {/* Main Content */}
         <div className="flex-grow">
           <div className={`${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'} rounded-2xl shadow-xl p-8 border min-h-[600px]`}>
-            {activeTab === 'overview' && (
-              <div className="space-y-8">
-                <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Team Performance</h2>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className={`${theme === 'dark' ? 'bg-blue-500/10 border-blue-500/20' : 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm'} p-6 rounded-2xl border`}>
-                    <p className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-700'} uppercase tracking-widest mb-1`}>Total Enquiries</p>
-                    <p className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-blue-900'}`}>{teamEnquiries.length}</p>
-                  </div>
-                  <div className={`${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 shadow-sm'} p-6 rounded-2xl border`}>
-                    <p className={`text-xs font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'} uppercase tracking-widest mb-1`}>Completed</p>
-                    <p className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-emerald-900'}`}>{teamEnquiries.filter(e => e.status === 'Completed').length}</p>
-                  </div>
-                  <div className={`${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm'} p-6 rounded-2xl border`}>
-                    <p className={`text-xs font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-700'} uppercase tracking-widest mb-1`}>In Progress</p>
-                    <p className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-amber-900'}`}>{teamEnquiries.filter(e => e.status === 'In Progress').length}</p>
-                  </div>
-                  <div className={`${theme === 'dark' ? 'bg-red-500/10 border-red-500/20' : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-sm'} p-6 rounded-2xl border`}>
-                    <p className={`text-xs font-bold ${theme === 'dark' ? 'text-red-400' : 'text-red-700'} uppercase tracking-widest mb-1`}>Pending</p>
-                    <p className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-red-900'}`}>{teamEnquiries.filter(e => e.status === 'Pending').length}</p>
-                  </div>
-                </div>
-
+{activeTab === 'overview' && !loading && (
+              <>
+                <StatsOverview 
+                  teamEnquiries={teamEnquiries} 
+                  counsellors={counsellors} 
+                  theme={theme} 
+                />
                 <div className="mt-12">
-                  <h3 className={`text-lg font-bold ${theme === 'dark' ? 'text-slate-200' : 'text-gray-700'} mb-6`}>Counsellor Workload Distribution</h3>
-                  <div className="space-y-4">
-                    {counsellors.map(c => {
-                      const stats = getCounsellorStats(c.id);
-                      const percentage = teamEnquiries.length ? Math.round((stats.total / teamEnquiries.length) * 100) : 0;
-                      return (
-                        <div key={c.id} className={`${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'} p-4 rounded-xl border`}>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className={`font-bold ${theme === 'dark' ? 'text-slate-200' : 'text-gray-700'}`}>{c.name}</span>
-                            <span className="text-xs font-bold text-gray-500">{stats.total} Enquiries ({percentage}%)</span>
-                          </div>
-                          <div className={`w-full ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'} rounded-full h-2 overflow-hidden flex`}>
-                            <div className="bg-green-500 h-full" style={{ width: `${stats.total ? (stats.completed / stats.total) * 100 : 0}%` }}></div>
-                            <div className="bg-yellow-500 h-full" style={{ width: `${stats.total ? (stats.inProgress / stats.total) * 100 : 0}%` }}></div>
-                            <div className="bg-blue-500 h-full" style={{ width: `${stats.total ? (stats.pending / stats.total) * 100 : 0}%` }}></div>
-                          </div>
-                          <div className="flex space-x-4 mt-2">
-                            <div className="flex items-center space-x-1">
-                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                              <span className="text-[10px] text-gray-500 uppercase font-bold">Done: {stats.completed}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                              <span className="text-[10px] text-gray-500 uppercase font-bold">Active: {stats.inProgress}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                              <span className="text-[10px] text-gray-500 uppercase font-bold">New: {stats.pending}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <QuickPortals theme={theme} />
                 </div>
-
-                {/* Quick Portals */}
-                <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-8 text-white shadow-xl shadow-blue-100 relative overflow-hidden group cursor-pointer"
-                  >
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-white/10 w-32 h-32 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
-                    <div className="relative z-10">
-                      <div className="bg-white/20 p-3 rounded-xl inline-block mb-4">
-                        <Bus className="h-8 w-8" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">Transport Portal</h3>
-                      <p className="text-blue-100 mb-6 max-w-[240px]">Manage university bus routes, schedules, and student transport registrations.</p>
-                      <a 
-                        href="https://krmangalam.edu.in/transport" 
-                        target="_blank" 
-                        className="bg-white text-blue-600 px-6 py-2 rounded-xl font-bold inline-flex items-center space-x-2 hover:bg-blue-50 transition-colors"
-                      >
-                        <span>Access Portal</span>
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </div>
-                  </motion.div>
-
-                  <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-8 text-white shadow-xl shadow-emerald-100 relative overflow-hidden group cursor-pointer"
-                  >
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-white/10 w-32 h-32 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
-                    <div className="relative z-10">
-                      <div className="bg-white/20 p-3 rounded-xl inline-block mb-4">
-                        <Home className="h-8 w-8" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">Hostel Portal</h3>
-                      <p className="text-emerald-100 mb-6 max-w-[240px]">Oversee room allocations, mess management, and hostel facility requests.</p>
-                      <a 
-                        href="https://krmangalam.edu.in/hostel" 
-                        target="_blank" 
-                        className="bg-white text-emerald-600 px-6 py-2 rounded-xl font-bold inline-flex items-center space-x-2 hover:bg-emerald-50 transition-colors"
-                      >
-                        <span>Access Portal</span>
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </div>
-                  </motion.div>
-
-                  <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-8 text-white shadow-xl shadow-purple-100 relative overflow-hidden group cursor-pointer"
-                  >
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-white/10 w-32 h-32 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
-                    <div className="relative z-10">
-                      <div className="bg-white/20 p-3 rounded-xl inline-block mb-4">
-                        <CreditCard className="h-8 w-8" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-2">Payment Portal</h3>
-                      <p className="text-purple-100 mb-6 max-w-[240px]">Access student fee records, online payments, and financial aid information.</p>
-                      <a 
-                        href="https://payment.collexo.com/user/login/?dest=/kr-mangalam-university-sohna-haryana-43490/applicant/" 
-                        target="_blank" 
-                        className="bg-white text-purple-600 px-6 py-2 rounded-xl font-bold inline-flex items-center space-x-2 hover:bg-purple-50 transition-colors"
-                      >
-                        <span>Access Portal</span>
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
+              </>
             )}
 
-            {activeTab === 'counsellors' && (
+
+
+{activeTab === 'counsellors' && !loading && (
               <div>
                 <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'} mb-8`}>My Team Members</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {counsellors.map(c => {
                     const stats = getCounsellorStats(c.id);
                     return (
-                      <div key={c.id} className={`${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100 shadow-sm'} p-6 rounded-2xl border hover:shadow-md transition-all`}>
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className={`${theme === 'dark' ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'} p-2 rounded-lg`}>
-                            <Users className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <h3 className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{c.name}</h3>
-                            <p className="text-xs text-gray-500">{c.email}</p>
-                          </div>
-                          {c.onBreak && (
-                            <div className="ml-auto flex items-center space-x-1 px-2 py-1 bg-orange-100 text-orange-700 rounded-lg text-[10px] font-bold uppercase animate-pulse">
-                              <Coffee className="h-3 w-3" />
-                              <span>On Break</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-4 mb-4">
-                          <div className="space-y-2">
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Assigned Courses</p>
-                            <div className="flex flex-wrap gap-1">
-                              {c.assignedCourses?.map(course => (
-                                <span key={course} className={`${theme === 'dark' ? 'bg-white/10 text-slate-300' : 'bg-gray-100 text-gray-600'} px-2 py-0.5 rounded text-[10px] font-bold`}>{course}</span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Lunch Break Duration (Mins)</p>
-                            <div className="flex items-center space-x-2">
-                              <input 
-                                type="number"
-                                value={c.breakDurationMins || 30}
-                                onChange={(e) => handleUpdateBreakDuration(c.id, parseInt(e.target.value))}
-                                className={`w-20 px-2 py-1 ${theme === 'dark' ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'} border rounded text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none`}
-                              />
-                              <span className="text-xs text-gray-400">Default: 30m</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className={`pt-4 border-t ${theme === 'dark' ? 'border-white/5' : 'border-gray-50'} flex justify-between`}>
-                          <div className="text-center">
-                            <p className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{stats.total}</p>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Total</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-green-600">{stats.completed}</p>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">Done</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-blue-600">{stats.pending}</p>
-                            <p className="text-[10px] text-gray-400 uppercase font-bold">New</p>
-                          </div>
-                        </div>
-                      </div>
+                      <CounsellorCard
+                        key={c.id}
+                        counsellor={c}
+                        stats={stats}
+                        onUpdateBreakDuration={handleUpdateBreakDuration}
+                        theme={theme}
+                      />
                     );
                   })}
                 </div>
               </div>
             )}
+
 
             {activeTab === 'enquiries' && (
               <div>
@@ -798,10 +639,12 @@ const TeamLeadDashboard: React.FC<TeamLeadDashboardProps> = ({ user }) => {
                               </h3>
                               <div className="flex items-center space-x-2">
                                 <span className="text-xs font-bold text-gray-400 uppercase">Status:</span>
-                                <select
+<select
                                   value={activeEnquiry.status}
                                   onChange={(e) => handleUpdateStatus(activeEnquiry.id, e.target.value as Enquiry['status'])}
                                   className={`text-sm font-bold ${theme === 'dark' ? 'bg-white/5 text-white' : 'bg-gray-50 text-gray-900'} border-none rounded-lg focus:ring-2 focus:ring-blue-500`}
+                                  aria-label="Enquiry status"
+                                  title="Enquiry status selector"
                                 >
                                   <option value="Pending" className={theme === 'dark' ? 'bg-slate-900' : ''}>Pending</option>
                                   <option value="In Progress" className={theme === 'dark' ? 'bg-slate-900' : ''}>In Progress</option>
